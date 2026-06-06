@@ -2,40 +2,7 @@ import streamlit as st
 import tiktoken
 import re
 from google import genai
-import json
-import re
 
-def aggressive_data_distiller(context_data):
-    """
-    CRUSHES data formats (JSON, Logs, Code) by removing structural tokens.
-    Can achieve 60% - 85% token reduction instantly.
-    """
-    if not context_data.strip():
-        return context_data
-        
-    # Attempt 1: If it's JSON, convert it to a hyper-dense CSV-style string
-    try:
-        parsed = json.loads(context_data)
-        if isinstance(parsed, list) and len(parsed) > 0 and isinstance(parsed[0], dict):
-            # Convert list of JSON objects to a pipe-delimited string (Massive savings)
-            headers = parsed[0].keys()
-            minified = "|".join(headers) + "\n"
-            for item in parsed:
-                minified += "|".join(str(item.get(k, "")) for k in headers) + "\n"
-            return minified
-        else:
-            # Minify standard JSON by stripping all spaces
-            return json.dumps(parsed, separators=(',', ':'))
-    except ValueError:
-        pass # Not JSON, move to raw text minification
-        
-    # Attempt 2: Aggressive Code/Log Minification
-    # 1. Strip all leading/trailing whitespace and newlines
-    cleaned = re.sub(r'\s+', ' ', context_data)
-    # 2. Strip spaces around programming operators (brackets, equals, commas)
-    cleaned = re.sub(r'\s*([=+\-*/{}\[\](),:;<>|])\s*', r'\1', cleaned)
-    
-    return cleaned.strip()
 # --- PAGE SETUP ---
 st.set_page_config(
     page_title="PromptGym: Token Optimizer", 
